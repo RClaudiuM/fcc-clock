@@ -2,10 +2,11 @@ import { Button, IconButton } from "@mui/material";
 import "./App.css";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ReplayIcon from "@mui/icons-material/Replay";
 import PauseIcon from "@mui/icons-material/Pause";
+import useState from "react-usestateref";
 
 const accurateInterval = function (fn, time) {
   var cancel, nextAt, timeout, wrapper;
@@ -27,30 +28,20 @@ const accurateInterval = function (fn, time) {
 
 function App() {
   // state management
-  const [timer, setTimer] = useState(1500); //1500 seconds = 25 minutes
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [breakVal, setBreakVal] = useState(5);
-  const [breakDisableUp, setBreakDisableUp] = useState(false);
-  const [breakDisableDown, setBreakDisableDown] = useState(false);
-  const [sessionVal, setSessionVal] = useState(25);
-  const [sessionDisableUp, setSessionDisableUp] = useState(false);
-  const [sessionDisableDown, setSessionDisableDown] = useState(false);
-  const [curTimerType, setCurTimerType] = useState("Session");
-  const [intervalId, setIntervalId] = useState("");
+  const [timer, setTimer, timerRef] = useState(1500); //1500 seconds = 25 minutes
+  const [isTimerRunning, setIsTimerRunning, isTimerRunningRef] =
+    useState(false);
+  const [breakVal, setBreakVal, breakValRef] = useState(5);
+  const [breakDisableUp, setBreakDisableUp, bduRef] = useState(false);
+  const [breakDisableDown, setBreakDisableDown, bddRed] = useState(false);
+  const [sessionVal, setSessionVal, sessionValRef] = useState(25);
+  const [sessionDisableUp, setSessionDisableUp, sduRef] = useState(false);
+  const [sessionDisableDown, setSessionDisableDown, sddRef] = useState(false);
+  const [curTimerType, setCurTimerType, curTimerTypeRef] = useState("Session");
+  const [intervalId, setIntervalId, intervalIdRef] = useState("");
 
   //ref management
   const audioRef = useRef();
-  const copyTimerRef = useRef(0);
-  const copyIsTimerRunning = useRef(0);
-  const copyBreakVal = useRef(0);
-  const copySessionVal = useRef(0);
-  const copyCurTimerType = useRef(0);
-  //copy management
-  copyTimerRef.current = timer;
-  copyIsTimerRunning.current = isTimerRunning;
-  copyBreakVal.current = breakVal;
-  copySessionVal.current = sessionVal;
-  copyCurTimerType.current = curTimerType;
 
   useEffect(() => {
     //every time breakVal or sessionVal will change
@@ -71,6 +62,10 @@ function App() {
       setSessionDisableDown(true);
     }
   }, [breakVal, sessionVal]);
+
+  useEffect(() => {
+    //console.log(timer);
+  }, [timer]);
 
   const handleBreakIncrement = () => {
     if (breakVal < 60) {
@@ -105,9 +100,9 @@ function App() {
   const timerControl = () => {
     console.log(
       "Entered timerControl with:isTimerRunningRef.current value =  " +
-        copyIsTimerRunning.current
+        isTimerRunningRef.current
     );
-    if (!copyIsTimerRunning.current) {
+    if (!isTimerRunningRef.current) {
       console.log("entered if");
       startTimer();
       setIsTimerRunning(true);
@@ -133,7 +128,7 @@ function App() {
   };
 
   const controlTimer = () => {
-    let actualTimer = copyTimerRef.current; //timerRef.current;
+    let actualTimer = timerRef.current;
     playAudio(actualTimer);
     //console.log("control timer entered");
     //console.log(timerRef.current);
@@ -143,12 +138,12 @@ function App() {
         console.log(intervalId);
         setIntervalId(intervalId.cancel());
       }
-      if (copyCurTimerType.current === "Session") {
+      if (curTimerTypeRef.current === "Session") {
         startTimer();
-        changeTimer(copyBreakVal.current * 60, "Break");
+        changeTimer(breakValRef.current * 60, "Break");
       } else {
         startTimer();
-        changeTimer(copySessionVal.current * 60, "Session");
+        changeTimer(sessionValRef.current * 60, "Session");
       }
     }
   };

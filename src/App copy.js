@@ -2,55 +2,45 @@ import { Button, IconButton } from "@mui/material";
 import "./App.css";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ReplayIcon from "@mui/icons-material/Replay";
 import PauseIcon from "@mui/icons-material/Pause";
-
-const accurateInterval = function (fn, time) {
-  var cancel, nextAt, timeout, wrapper;
-  nextAt = new Date().getTime() + time;
-  timeout = null;
-  wrapper = function () {
-    nextAt += time;
-    timeout = setTimeout(wrapper, nextAt - new Date().getTime());
-    return fn();
-  };
-  cancel = function () {
-    return clearTimeout(timeout);
-  };
-  timeout = setTimeout(wrapper, nextAt - new Date().getTime());
-  return {
-    cancel: cancel,
-  };
-};
+import useState from "react-usestateref";
 
 function App() {
+  const accurateInterval = function (fn, time) {
+    var cancel, nextAt, timeout, wrapper;
+    nextAt = new Date().getTime() + time;
+    timeout = null;
+    wrapper = function () {
+      nextAt += time;
+      timeout = setTimeout(wrapper, nextAt - new Date().getTime());
+      return fn();
+    };
+    cancel = function () {
+      return clearTimeout(timeout);
+    };
+    timeout = setTimeout(wrapper, nextAt - new Date().getTime());
+    return {
+      cancel: cancel,
+    };
+  };
   // state management
-  const [timer, setTimer] = useState(1500); //1500 seconds = 25 minutes
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [breakVal, setBreakVal] = useState(5);
-  const [breakDisableUp, setBreakDisableUp] = useState(false);
-  const [breakDisableDown, setBreakDisableDown] = useState(false);
-  const [sessionVal, setSessionVal] = useState(25);
-  const [sessionDisableUp, setSessionDisableUp] = useState(false);
-  const [sessionDisableDown, setSessionDisableDown] = useState(false);
-  const [curTimerType, setCurTimerType] = useState("Session");
-  const [intervalId, setIntervalId] = useState("");
+  const [timer, setTimer, timerRef] = useState(1500); //1500 seconds = 25 minutes
+  const [isTimerRunning, setIsTimerRunning, isTimerRunningRef] =
+    useState(false);
+  const [breakVal, setBreakVal, breakValRef] = useState(5);
+  const [breakDisableUp, setBreakDisableUp, bduRef] = useState(false);
+  const [breakDisableDown, setBreakDisableDown, bddRed] = useState(false);
+  const [sessionVal, setSessionVal, sessionValRef] = useState(25);
+  const [sessionDisableUp, setSessionDisableUp, sduRef] = useState(false);
+  const [sessionDisableDown, setSessionDisableDown, sddRef] = useState(false);
+  const [curTimerType, setCurTimerType, curTimerTypeRef] = useState("Session");
+  const [intervalId, setIntervalId, intervalIdRef] = useState("");
 
   //ref management
   const audioRef = useRef();
-  const copyTimerRef = useRef(0);
-  const copyIsTimerRunning = useRef(0);
-  const copyBreakVal = useRef(0);
-  const copySessionVal = useRef(0);
-  const copyCurTimerType = useRef(0);
-  //copy management
-  copyTimerRef.current = timer;
-  copyIsTimerRunning.current = isTimerRunning;
-  copyBreakVal.current = breakVal;
-  copySessionVal.current = sessionVal;
-  copyCurTimerType.current = curTimerType;
 
   useEffect(() => {
     //every time breakVal or sessionVal will change
@@ -71,6 +61,10 @@ function App() {
       setSessionDisableDown(true);
     }
   }, [breakVal, sessionVal]);
+
+  useEffect(() => {
+    //action on timer change
+  }, [timer]);
 
   const handleBreakIncrement = () => {
     if (breakVal < 60) {
@@ -105,9 +99,9 @@ function App() {
   const timerControl = () => {
     console.log(
       "Entered timerControl with:isTimerRunningRef.current value =  " +
-        copyIsTimerRunning.current
+        isTimerRunningRef.current
     );
-    if (!copyIsTimerRunning.current) {
+    if (!isTimerRunningRef.current) {
       console.log("entered if");
       startTimer();
       setIsTimerRunning(true);
@@ -133,22 +127,20 @@ function App() {
   };
 
   const controlTimer = () => {
-    let actualTimer = copyTimerRef.current; //timerRef.current;
+    let actualTimer = timerRef.current;
     playAudio(actualTimer);
-    //console.log("control timer entered");
-    //console.log(timerRef.current);
 
     if (actualTimer < 0) {
       if (intervalId) {
         console.log(intervalId);
         setIntervalId(intervalId.cancel());
       }
-      if (copyCurTimerType.current === "Session") {
+      if (curTimerTypeRef.current === "Session") {
         startTimer();
-        changeTimer(copyBreakVal.current * 60, "Break");
+        changeTimer(breakValRef.current * 60, "Break");
       } else {
         startTimer();
-        changeTimer(copySessionVal.current * 60, "Session");
+        changeTimer(sessionValRef.current * 60, "Session");
       }
     }
   };
@@ -244,27 +236,41 @@ function App() {
             <div className="util-container">
               {/* if breakVal = 60 disable the increment button */}
 
-              <IconButton
+              {/* <IconButton
                 size="large"
                 id="break-increment"
                 disabled={breakDisableUp}
                 onClick={handleBreakIncrement}
               >
                 <ArrowUpwardIcon fontSize="inherit" />
-              </IconButton>
+              </IconButton> */}
+              <Button
+                id="break-increment"
+                disabled={breakDisableUp}
+                onClick={handleBreakIncrement}
+              >
+                UP
+              </Button>
               <div id="break-length" className="break-value">
                 {breakVal}
               </div>
 
               {/* if breakVal = 1 disable decrement button */}
-              <IconButton
+              {/* <IconButton
                 size="large"
                 id="break-decrement"
                 onClick={handleBreakDecrement}
                 disabled={breakDisableDown}
               >
                 <ArrowDownwardIcon fontSize="inherit" />
-              </IconButton>
+              </IconButton> */}
+              <Button
+                id="break-decrement"
+                onClick={handleBreakDecrement}
+                disabled={breakDisableDown}
+              >
+                Down
+              </Button>
             </div>
           </div>
 
@@ -275,27 +281,42 @@ function App() {
             <div className="util-container">
               {/* if session length = 60 disable increment button */}
 
-              <IconButton
+              {/* <IconButton
                 size="large"
                 id="session-increment"
                 onClick={handleSessionIncrement}
                 disabled={sessionDisableUp}
               >
                 <ArrowUpwardIcon fontSize="inherit" id="session-icon" />
-              </IconButton>
+              </IconButton> */}
+
+              <Button
+                id="session-increment"
+                onClick={handleSessionIncrement}
+                disabled={sessionDisableUp}
+              >
+                UP
+              </Button>
 
               <div id="session-length" className="session-value">
                 {sessionVal}
               </div>
 
-              <IconButton
+              {/* <IconButton
                 size="large"
                 id="session-decrement"
                 onClick={handleSessionDecrement}
                 disabled={sessionDisableDown}
               >
                 <ArrowDownwardIcon fontSize="inherit" />
-              </IconButton>
+              </IconButton> */}
+              <Button
+                id="session-decrement"
+                onClick={handleSessionDecrement}
+                disabled={sessionDisableDown}
+              >
+                DOWN
+              </Button>
             </div>
           </div>
         </div>
@@ -312,30 +333,47 @@ function App() {
           {isTimerRunning ? (
             <div>
               {/* <IconButton onClick={handlePause}> */}
-              <IconButton
+              {/* <IconButton
                 onClick={handlePlayPause}
                 id="start_stop"
                 buttontype="pause-button"
               >
                 <PauseIcon />
-              </IconButton>
+              </IconButton> */}
+              <Button
+                onClick={handlePlayPause}
+                id="start_stop"
+                buttontype="pause-button"
+              >
+                Pause
+              </Button>
             </div>
           ) : (
             <div>
               {/* <IconButton onClick={handlePlay}> */}
-              <IconButton
+              {/* <IconButton
                 onClick={handlePlayPause}
                 id="start_stop"
                 buttontype="play-button"
               >
                 <PlayArrowIcon />
-              </IconButton>
+              </IconButton> */}
+              <Button
+                onClick={handlePlayPause}
+                id="start_stop"
+                buttontype="play-button"
+              >
+                Play
+              </Button>
             </div>
           )}
           <div className="reset">
-            <IconButton onClick={handleReset} id="reset">
+            {/* <IconButton onClick={handleReset} id="reset">
               <ReplayIcon />
-            </IconButton>
+            </IconButton> */}
+            <Button onClick={handleReset} id="reset">
+              Reset
+            </Button>
           </div>
         </div>
       </div>
